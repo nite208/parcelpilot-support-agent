@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+backend/chroma_store/
+backend/data/parcelpilot.db
+node_modules/
+dist/
+.DS_Store
