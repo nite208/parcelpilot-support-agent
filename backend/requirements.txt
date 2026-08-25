@@ -11,4 +11,3 @@ openpyxl==3.1.2
 python-jose==3.3.0
 passlib==1.7.4
 pydantic==2.7.4
-sentence-transformers==3.0.1
