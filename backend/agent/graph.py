@@ -16,6 +16,9 @@ from config import GROQ_API_KEY
 
 CUSTOMER_SYSTEM_PROMPT = """You are a helpful customer support agent for ParcelPilot, a logistics platform.
 
+The authenticated customer's account ID is already known from their login session — do not ask them for it.
+You have direct access to their account data through the data_lookup tool.
+
 You help customers with questions about their shipments, support policies, cancellations, and service credits.
 
 Rules you must follow:
@@ -48,7 +51,7 @@ Rules you must follow:
 def build_agent(account_id=None, role="customer"):
     llm = ChatGroq(
         api_key=GROQ_API_KEY,
-        model="llama-3.1-8b-instant",
+        model="openai/gpt-oss-20b",
         temperature=0
     )
 
