@@ -4,7 +4,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from pypdf import PdfReader
 import chromadb
-from chromadb.utils import embedding_functions
 from config import CHROMA_PERSIST_DIR, DATA_DIR, DOCUMENT_AUTHORITY, DEPRECATED_DOCS
 
 
@@ -34,14 +33,9 @@ def chunk_text(text, chunk_size=600, overlap=100):
 
 def ingest_documents():
     client = chromadb.PersistentClient(path=CHROMA_PERSIST_DIR)
-    
-    ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name="all-MiniLM-L6-v2"
-    )
-    
+
     collection = client.get_or_create_collection(
         name="parcelpilot_docs",
-        embedding_function=ef,
         metadata={"hnsw:space": "cosine"}
     )
 
@@ -57,15 +51,15 @@ def ingest_documents():
         filepath = os.path.join(DATA_DIR, filename)
         authority = DOCUMENT_AUTHORITY.get(filename, 50)
         is_deprecated = filename in DEPRECATED_DOCS
-        
+
         pages = extract_text_from_pdf(filepath)
-        
+
         for page_data in pages:
             chunks = chunk_text(page_data["text"])
-            
+
             for i, chunk in enumerate(chunks):
                 chunk_id = f"{filename}_p{page_data['page']}_c{i}"
-                
+
                 collection.add(
                     ids=[chunk_id],
                     documents=[chunk],
@@ -78,9 +72,9 @@ def ingest_documents():
                     }]
                 )
                 total_chunks += 1
-        
+
         print(f"Ingested {filename} — authority={authority}, deprecated={is_deprecated}")
-    
+
     print(f"Ingest complete. Total chunks: {total_chunks}")
 
 
