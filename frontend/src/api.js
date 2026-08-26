@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE_URL = 'http://localhost:8000'
+const BASE_URL = 'https://parcelpilot-support-agent-ncj8.onrender.com'
 
 export const login = async (username, password) => {
   const res = await axios.post(`${BASE_URL}/auth/login`, { username, password })
