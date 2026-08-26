@@ -1,6 +1,7 @@
 import ReactMarkdown from 'react-markdown'
 import { useState, useRef, useEffect } from 'react'
 import { sendCustomerMessage, sendInternalMessage, confirmEscalation } from '../api.js'
+import RadarPanel from '../RadarPanel.jsx'
 
 export default function Chat({ session, onLogout }) {
   const [messages, setMessages] = useState([
@@ -15,6 +16,7 @@ export default function Chat({ session, onLogout }) {
   const [loading, setLoading] = useState(false)
   const [toolTrace, setToolTrace] = useState([])
   const [pendingEscalation, setPendingEscalation] = useState(null)
+  const [radarOpen, setRadarOpen] = useState(true)   // radar visible by default for internal
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -91,15 +93,19 @@ export default function Chat({ session, onLogout }) {
     }
   }
 
+  const isInternal = session.role === 'internal'
+
   return (
     <div style={styles.layout}>
+
+      {/* ── LEFT SIDEBAR ── */}
       <div style={styles.sidebar}>
         <div style={styles.sidebarHeader}>
           <span style={styles.sidebarIcon}>📦</span>
           <div>
             <p style={styles.sidebarTitle}>ParcelPilot</p>
             <p style={styles.sidebarSub}>
-              {session.role === 'internal' ? 'Internal Console' : 'Customer Support'}
+              {isInternal ? 'Internal Console' : 'Customer Support'}
             </p>
           </div>
         </div>
@@ -109,13 +115,28 @@ export default function Chat({ session, onLogout }) {
           <p style={styles.sessionName}>{session.account_name || 'Support Agent'}</p>
           <span style={{
             ...styles.roleBadge,
-            background: session.role === 'internal' ? '#7c3aed22' : '#0d947022',
-            color: session.role === 'internal' ? '#a78bfa' : '#34d399',
-            border: `1px solid ${session.role === 'internal' ? '#7c3aed44' : '#0d947044'}`,
+            background: isInternal ? '#7c3aed22' : '#0d947022',
+            color: isInternal ? '#a78bfa' : '#34d399',
+            border: `1px solid ${isInternal ? '#7c3aed44' : '#0d947044'}`,
           }}>
             {session.role}
           </span>
         </div>
+
+        {/* Radar toggle button — internal only */}
+        {isInternal && (
+          <button
+            style={{
+              ...styles.radarToggleBtn,
+              background: radarOpen ? '#7c3aed22' : 'transparent',
+              color: radarOpen ? '#a78bfa' : '#6b7280',
+              border: `1px solid ${radarOpen ? '#7c3aed44' : '#2a2d3e'}`,
+            }}
+            onClick={() => setRadarOpen((v) => !v)}
+          >
+            🛰 {radarOpen ? 'Hide Radar' : 'Show Radar'}
+          </button>
+        )}
 
         <div style={styles.traceSection}>
           <p style={styles.traceLabel}>Tool Trace</p>
@@ -136,6 +157,7 @@ export default function Chat({ session, onLogout }) {
         <button style={styles.logoutBtn} onClick={onLogout}>Sign Out</button>
       </div>
 
+      {/* ── CHAT AREA ── */}
       <div style={styles.chatArea}>
         <div style={styles.messages}>
           {messages.map((m, i) => (
@@ -199,6 +221,14 @@ export default function Chat({ session, onLogout }) {
           </button>
         </div>
       </div>
+
+      {/* ── RADAR PANEL — internal only, toggleable ── */}
+      {isInternal && radarOpen && (
+        <div style={styles.radarPanel}>
+          <RadarPanel token={session.access_token} />
+        </div>
+      )}
+
     </div>
   )
 }
@@ -210,7 +240,8 @@ const styles = {
     background: '#0f1117',
   },
   sidebar: {
-    width: '280px',
+    width: '240px',
+    minWidth: '240px',
     background: '#1a1d27',
     borderRight: '1px solid #2a2d3e',
     display: 'flex',
@@ -264,6 +295,15 @@ const styles = {
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
   },
+  radarToggleBtn: {
+    borderRadius: '8px',
+    padding: '8px 12px',
+    cursor: 'pointer',
+    fontSize: '12px',
+    fontWeight: '600',
+    textAlign: 'left',
+    transition: 'all 0.2s',
+  },
   traceSection: {
     flex: 1,
     display: 'flex',
@@ -314,6 +354,7 @@ const styles = {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
+    minWidth: 0,
   },
   messages: {
     flex: 1,
@@ -405,5 +446,12 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: '600',
+  },
+  radarPanel: {
+    width: '320px',
+    minWidth: '320px',
+    background: '#13161f',
+    borderLeft: '1px solid #2a2d3e',
+    overflowY: 'auto',
   },
 }

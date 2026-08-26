@@ -12,6 +12,7 @@ from agent.graph import run_agent
 from agent.tools.escalation import confirm_escalation, get_all_escalations
 from rag.ingest import ingest_documents
 from db.setup import setup_database
+from radar import router as radar_router  # ← NEW
 
 app = FastAPI(title="ParcelPilot Support Agent", version="1.0.0")
 
@@ -22,6 +23,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register radar routes
+app.include_router(radar_router)  # ← NEW
 
 
 class LoginRequest(BaseModel):
@@ -65,7 +69,7 @@ def auth_login(request: LoginRequest):
 def customer_chat(request: ChatRequest, user=Depends(get_current_user)):
     if user.get("role") != "customer":
         raise HTTPException(status_code=403, detail="Customer access only")
-    
+
     account_id = user.get("account_id")
     if not account_id:
         raise HTTPException(status_code=400, detail="No account associated with this user")
